@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { askGwaliorGuide } from "@/lib/ai.functions";
 
 type Message = {
   role: "user" | "assistant";
@@ -17,29 +18,58 @@ export default function AIGuide() {
     },
   ]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = async () => {
+  if (!input.trim()) return;
 
-    const userMessage: Message = {
-      role: "user",
-      content: input,
+  const question = input;
+
+  const userMessage: Message = {
+    role: "user",
+    content: question,
+  };
+
+  setMessages((prev) => [...prev, userMessage]);
+  setInput("");
+
+  try {
+    const result = await askGwaliorGuide({
+      data: {
+        question: question,
+      },
+    });
+
+    const aiMessage: Message = {
+      role: "assistant",
+      content: result.answer,
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => [...prev, aiMessage]);
+  } catch (error) {
+    console.error("Error fetching AI response:", error);
 
-    setInput("");
+    const aiMessage: Message = {
+      role: "assistant",
+      content:
+        "Sorry, I could not find an answer right now. Please try again later.",
+    };
+
+    setMessages((prev) => [...prev, aiMessage]);
+  }
+};
+
+
 
     // Temporary reply
-    setTimeout(() => {
-      const aiMessage: Message = {
-        role: "assistant",
-        content:
-          "Thank you for your question! 🤖 The AI connection will be added next. Then I will be able to answer your question using Gwalior tourism information.",
-      };
+    // setTimeout(() => {
+    //   const aiMessage: Message = {
+    //     role: "assistant",
+    //     content:
+    //       "Thank you for your question! 🤖 The AI connection will be added next. Then I will be able to answer your question using Gwalior tourism information.",
+    //   };
 
-      setMessages((prev) => [...prev, aiMessage]);
-    }, 500);
-  };
+    //   setMessages((prev) => [...prev, aiMessage]);
+    // }, 500);
+  //};
 
   return (
     <>
